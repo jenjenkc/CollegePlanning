@@ -1,0 +1,179 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Senior Year Command Center</title>
+<style>
+:root{--ink:#1b2a41;--mut:#5b6678;--bg:#f5f6f8;--line:#dfe3ea;--red:#c8372d;--amb:#b7791f;--vio:#6b46c1;--blu:#2b6cb0;--grn:#2f855a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1,h2,.big{font-family:Georgia,"Iowan Old Style",serif;font-weight:700}h2{font-size:19px;margin:0 0 10px}
+header{background:var(--ink);color:#fff;padding:12px 20px;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+header h1{font-size:20px;margin:0 auto 0 0}nav{display:flex;gap:4px}
+button,select,input{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:#fff;border-radius:6px;padding:6px 12px}
+nav button{background:none;border:0;color:#c9d3e3;border-bottom:3px solid transparent;border-radius:0}nav button.on{color:#fff;border-color:#fff}
+.tools button{background:none;color:#c9d3e3;border-color:#48587a;font-size:13px}
+button:focus-visible,select:focus-visible,input:focus-visible{outline:3px solid #6aa5ff;outline-offset:1px}
+main{max-width:1100px;margin:0 auto;padding:18px}
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.st{background:#fff;border:1px solid var(--line);border-left:5px solid var(--blu);padding:10px 14px}.st b{font-size:26px;display:block}.st.r{border-left-color:var(--red)}.st.a{border-left-color:var(--amb)}
+.next{background:var(--ink);color:#fff;padding:18px 22px;margin-bottom:16px;display:flex;gap:22px;align-items:center;flex-wrap:wrap}.big{font-size:56px;line-height:1}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}@media(max-width:800px){.grid2,.cal{grid-template-columns:1fr!important}}
+.box{background:#fff;border:1px solid var(--line);padding:14px}
+.row{display:flex;gap:10px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}.row:first-of-type{border-top:0}.row>span:first-child{flex:1}
+.dot{width:10px!important;height:10px;border-radius:50%;background:var(--c);flex:none!important}.mut{color:var(--mut);font-size:13px}
+.pill{font-size:12px;padding:1px 8px;border-radius:99px;background:#eef1f6}.pill.v{background:#fdf0d5;color:#8a5a00}
+.cal{display:grid;grid-template-columns:1fr 300px;gap:16px}
+.mg{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line);border:1px solid var(--line)}
+.mg>div{background:#fff;min-height:88px;padding:3px;overflow:hidden;cursor:pointer;font-size:12px}.mg .h{min-height:0;background:#eef1f6;text-align:center;font-weight:600;cursor:default}
+.mg .o{background:#f5f6f8;color:#9aa3b2}.mg .t{outline:3px solid var(--ink);outline-offset:-3px}.mg .s{background:#eaf1ff}
+.ch{border-left:4px solid var(--c);background:color-mix(in srgb,var(--c) 12%,#fff);padding:0 4px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ap{background:#fff;border:1px solid var(--line);padding:14px;margin-bottom:12px}.fl{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px;margin-top:10px}
+.fl label{font-size:12px;color:var(--mut);display:block}.fl select,.fl input{width:100%;padding:4px}
+.hd{font-size:20px}table{width:100%;border-collapse:collapse;background:#fff}td,th{padding:7px 9px;border-bottom:1px solid var(--line);text-align:left}
+dialog{border:1px solid var(--line);padding:20px;width:min(440px,94vw)}dialog label{display:block;margin-top:8px;font-size:13px;color:var(--mut)}dialog input,dialog select{width:100%;padding:6px}
+.bar{display:flex;gap:8px;margin-top:14px}.bar .p{background:var(--ink);color:#fff}.bar .d{margin-left:auto;color:var(--red)}
+@media(prefers-reduced-motion:no-preference){.big{transition:opacity .3s}}
+#auth{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:20}#auth[hidden]{display:none!important}
+#auth form{background:#fff;border:1px solid var(--line);padding:26px;width:300px}
+#auth h2{margin:0 0 14px}#auth label{display:block;font-size:13px;color:var(--mut);margin-top:10px}
+#auth input{width:100%;padding:7px;margin-top:3px}#authErr{color:var(--red);font-size:13px;min-height:18px;margin-top:8px}
+.sync{font-size:12px;color:#c9d3e3}
+</style></head><body>
+<div id="auth" hidden><form id="loginForm"><h2>Sign in</h2><p class="mut" style="margin:0">Shared with Savannah — sign in with the account you set up.</p>
+<label>Email<input name="email" type="email" required autocomplete="username"></label>
+<label>Password<input name="password" type="password" required autocomplete="current-password"></label>
+<div id="authErr"></div><button class="p" style="width:100%;margin-top:10px">Sign in</button></form></div>
+<header><h1>Senior Year Command Center</h1><nav id="nav"></nav><span class="tools"><span id="syncSt" class="sync"></span> <button onclick="exp()">Export</button> <button onclick="$('#imp').click()">Import</button> <button onclick="rst()">Reset sample data</button> <button id="signOutBtn" hidden onclick="sbClient.auth.signOut().then(()=>location.reload())">Sign out</button><input id="imp" type="file" accept=".json" hidden></span></header>
+<main id="m"></main><dialog id="dlg"></dialog>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+const $=s=>document.querySelector(s),esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* ---- Shared live sync (Supabase) ----
+   Fill in these two values (Project Settings > API in your Supabase project) to turn on
+   shared live sync between you and Savannah. Leave them blank to keep using
+   browser-only storage (each person sees only their own copy). The anon key is
+   meant to be public — access is controlled by the sign-in + database rules, not by
+   hiding this key. See README.md for full setup steps. */
+const SUPABASE_URL='https://oampcsuxwmzyqrwknzlb.supabase.co';
+const SUPABASE_ANON_KEY='sb_publishable_s0tFXgZzw9MJeVC4bBp30A__WCM6njD';
+const STATE_ID='savannah'; // both of you read/write this same shared row
+const LIVE = !!(SUPABASE_URL && SUPABASE_ANON_KEY && window.supabase);
+const sbClient = LIVE ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
+if(SUPABASE_URL && SUPABASE_ANON_KEY && !window.supabase) console.warn('Supabase library failed to load from the CDN; falling back to local-only storage.');
+
+const SEED={"apps":[{"id":"APP-001","name":"University of Missouri","type":"Rolling","status":"Submitted","deadline":null,"target":null,"transcript":"Sent","essay1":"Not Required","essay2":"Not Required","counselorRec":"Not Required","teacherRec":"Not Required","fafsaContrib":"To Invite","fafsaSubmitted":"Not Started","aidPortal":"Needs Setup","fee":"Waiver Requested","next":"Open Mizzou status page and confirm every item received","nextDue":"2026-09-26","notes":"Check application status page for remaining items"},{"id":"APP-002","name":"University of North Carolina Wilmington","type":"Early Action","status":"Submitted","deadline":"2026-11-01","target":"2026-10-25","transcript":"Sent","essay1":"Not Required","essay2":"Not Required","counselorRec":"Not Started","teacherRec":"Not Started","fafsaContrib":"To Invite","fafsaSubmitted":"Not Started","aidPortal":"Needs Setup","fee":"Waiver Requested","next":"Reply and confirm Early Action consideration","nextDue":"2026-09-27","notes":"Admissions asked Savannah to confirm Early Action"},{"id":"APP-003","name":"University of Georgia","type":"Early Action","status":"Researching","deadline":"2026-10-15","target":"2026-10-08","transcript":"Not Started","essay1":"Not Started","essay2":"Not Required","counselorRec":"Not Started","teacherRec":"Not Started","fafsaContrib":"To Invite","fafsaSubmitted":"Not Started","aidPortal":"Needs Setup","fee":"Waiver Requested","next":"Choose EA or RD and add UGA in Common App","nextDue":"2026-09-30","notes":"Common App only; one long personal essay; no second essay"},{"id":"APP-004","name":"University of Mississippi","type":"Regular Decision","status":"Researching","deadline":null,"target":null,"transcript":"Not Started","essay1":"Not Started","essay2":"Not Required","counselorRec":"Not Started","teacherRec":"Not Started","fafsaContrib":"To Invite","fafsaSubmitted":"Not Started","aidPortal":"Needs Setup","fee":"Waiver Requested","next":"Attend visit and collect application, scholarship and housing information","nextDue":"2026-10-03","notes":"Fall Visit Day registered for October 3"},{"id":"APP-005","name":"Westmont College","type":"Regular Decision","status":"Researching","deadline":null,"target":null,"transcript":"Not Started","essay1":"Not Started","essay2":"Not Required","counselorRec":"Not Started","teacherRec":"Not Started","fafsaContrib":"To Invite","fafsaSubmitted":"Not Started","aidPortal":"Needs Setup","fee":"Waiver Requested","next":"Decide whether to schedule Westmont and UCSB trip","nextDue":"2026-10-05","notes":"College Day November 11; campus visit may add $1,000 scholarship"}],"reqs":[{"id":"REQ-001","college":"All colleges","name":"Complete Common App Profile and confirm fee waiver","cat":"Application","owner":"Student","status":"In Progress","due":"2026-10-01"},{"id":"REQ-002","college":"All colleges","name":"Finalize Activities list (up to 10)","cat":"Application","owner":"Student","status":"Not Started","due":"2026-10-10"},{"id":"REQ-003","college":"All colleges","name":"Select and finalize 650-word personal essay","cat":"Essay","owner":"Student","status":"Not Started","due":"2026-10-15"},{"id":"REQ-004","college":"All colleges","name":"Turn College App Planning Form in to SME Registrar","cat":"School Form","owner":"Student","status":"Not Started","due":"2026-09-30"},{"id":"REQ-005","college":"All colleges","name":"Complete senior and parent questionnaires for counselor recommendation","cat":"Recommendation","owner":"Student","status":"Not Started","due":"2026-10-01"},{"id":"REQ-006","college":"All colleges","name":"Request counselor/teacher recommendations with at least four weeks internal lead time","cat":"Recommendation","owner":"Student","status":"Not Started","due":"2026-10-01"},{"id":"REQ-007","college":"All colleges","name":"Prepare FAFSA contributor invitation and accounts","cat":"Financial Aid","owner":"Parent","status":"Not Started","due":"2026-10-01"},{"id":"REQ-008","college":"All colleges","name":"Submit FAFSA when the 2027-28 form opens","cat":"Financial Aid","owner":"Student","status":"Not Started","due":null},{"id":"REQ-009","college":"All colleges","name":"Verify each college admission plan and deadline","cat":"Research","owner":"Student","status":"In Progress","due":"2026-09-30"},{"id":"REQ-010","college":"All Common App colleges","name":"Complete FERPA waiver and waive access to recommendations","cat":"Application","owner":"Student","status":"Not Started","due":"2026-10-01"},{"id":"REQ-011","college":"Direct applications","name":"Request official transcripts through Xello for non-Common App colleges","cat":"Transcript","owner":"Student","status":"Not Started","due":null}],"events":[{"id":"EVT-001","name":"College App Planning Form to SME Registrar","tag":"Logistics & Action","prio":"Soft Deadline","owner":"Student","start":"2026-09-30","end":"2026-09-30","status":"Planned","verif":"Needs Verification","loc":"SME Registrar"},{"id":"EVT-002","name":"Verify Nov. 1 state-university admission/scholarship deadlines","tag":"Logistics & Action","prio":"Soft Deadline","owner":"Student","start":"2026-10-01","end":"2026-10-01","status":"Planned","verif":"Planning Target","loc":"Online"},{"id":"EVT-003","name":"FAFSA availability check and submission plan","tag":"Financial Aid","prio":"Soft Deadline","owner":"Student + Parent","start":"2026-10-01","end":"2026-10-01","status":"Planned","verif":"Needs Verification","loc":"https://studentaid.gov/"},{"id":"EVT-004","name":"State university priority application target","tag":"Hard Deadline","prio":"Hard Deadline","owner":"Student","start":"2026-11-01","end":"2026-11-01","status":"Planned","verif":"Needs Verification","loc":"Online"},{"id":"EVT-005","name":"Ask counselor whether any Common App Midyear Reports are required","tag":"Logistics & Action","prio":"Soft Deadline","owner":"Student","start":"2027-01-08","end":"2027-01-08","status":"Planned","verif":"Planning Target","loc":"SME Counseling"},{"id":"EVT-006","name":"Acceptance, intent to enroll and deposit review","tag":"Hard Deadline","prio":"Hard Deadline","owner":"Student + Parent","start":"2027-05-01","end":"2027-05-01","status":"Planned","verif":"Needs Verification","loc":"College portal"},{"id":"EVT-007","name":"Senior checkout and final transcript destination","tag":"Logistics & Action","prio":"Soft Deadline","owner":"Student","start":"2027-04-15","end":"2027-05-15","status":"Planned","verif":"Needs Verification","loc":"Canvas / Skyward"},{"id":"EVT-008","name":"Kansas Apply Free Days","tag":"Apply Free / Merit","prio":"Soft Deadline","owner":"Student","start":"2026-10-05","end":"2026-10-09","status":"Planned","verif":"Verified","loc":"Participating college portals"},{"id":"EVT-009","name":"SME Counselor Seminar","tag":"Fair & Info Session","prio":"Planning","owner":"Student","start":"2026-09-09","end":"2026-09-09","status":"Done","verif":"Needs Year Verification","loc":"SME"},{"id":"EVT-010","name":"NACAC College Fair","tag":"Fair & Info Session","prio":"Soft Deadline","owner":"Student + Parent","start":"2026-09-16","end":"2026-09-16","status":"Planned","verif":"Needs Year Verification","loc":"Hy-Vee Arena"},{"id":"EVT-011","name":"Career Fair at CAA","tag":"Fair & Info Session","prio":"Soft Deadline","owner":"Student","start":"2026-09-19","end":"2026-09-19","status":"Planned","verif":"Needs Year Verification","loc":"Center for Academic Achievement"},{"id":"EVT-012","name":"College of Liberal Arts Preview Day","tag":"Travel / Campus Visit","prio":"Soft Deadline","owner":"Student + Parent","start":"2026-10-02","end":"2026-10-02","status":"Planned","verif":"Verified","loc":"Ole Miss Student Union"},{"id":"EVT-013","name":"Ole Miss Fall Visit Day","tag":"Travel / Campus Visit","prio":"Soft Deadline","owner":"Student + Parent","start":"2026-10-03","end":"2026-10-03","status":"Registered","verif":"Verified","loc":"Black Pavilion, Oxford MS"},{"id":"EVT-014","name":"UGA Early Action application deadline","tag":"Hard Deadline","prio":"Hard Deadline","owner":"Student","start":"2026-10-15","end":"2026-10-15","status":"Planned","verif":"Verified","loc":"Common App"},{"id":"EVT-015","name":"Mizzou to You Kansas City","tag":"Fair & Info Session","prio":"Soft Deadline","owner":"Student + Parent","start":"2026-10-21","end":"2026-10-21","status":"Planned","verif":"Verified","loc":"Stoney Creek Hotel, Independence MO"},{"id":"EVT-016","name":"SME College Clinic","tag":"Fair & Info Session","prio":"Soft Deadline","owner":"Student + Parent","start":"2026-10-22","end":"2026-10-22","status":"Planned","verif":"Needs Year Verification","loc":"Shawnee Mission East"},{"id":"EVT-017","name":"UGA Early Action materials deadline","tag":"Hard Deadline","prio":"Hard Deadline","owner":"Student","start":"2026-10-29","end":"2026-10-29","status":"Planned","verif":"Verified","loc":"UGA portal"},{"id":"EVT-018","name":"UNCW Early Action deadline","tag":"Hard Deadline","prio":"Hard Deadline","owner":"Student","start":"2026-11-01","end":"2026-11-01","status":"Planned","verif":"Verified","loc":"UNCW portal"},{"id":"EVT-019","name":"JCCC Campus Visit with SME","tag":"Travel / Campus Visit","prio":"Soft Deadline","owner":"Student","start":"2026-11-04","end":"2026-11-04","status":"Planned","verif":"Needs Year Verification","loc":"JCCC"},{"id":"EVT-020","name":"Westmont College Day","tag":"Travel / Campus Visit","prio":"Soft Deadline","owner":"Student + Parent","start":"2026-11-11","end":"2026-11-11","status":"Planned","verif":"Verified","loc":"Westmont College, Santa Barbara CA"},{"id":"EVT-021","name":"College Financing Night at JCCC","tag":"Financial Aid","prio":"Soft Deadline","owner":"Student + Parent","start":"2026-11-19","end":"2026-11-19","status":"Planned","verif":"Needs Year Verification","loc":"JCCC Regnier Center 101"},{"id":"EVT-022","name":"UGA Regular Decision application deadline","tag":"Hard Deadline","prio":"Hard Deadline","owner":"Student","start":"2027-01-01","end":"2027-01-01","status":"Planned","verif":"Verified","loc":"Common App"},{"id":"EVT-023","name":"UGA Regular Decision materials deadline","tag":"Hard Deadline","prio":"Hard Deadline","owner":"Student","start":"2027-01-15","end":"2027-01-15","status":"Planned","verif":"Verified","loc":"UGA portal"},{"id":"EVT-024","name":"UNCW Regular Decision deadline","tag":"Hard Deadline","prio":"Hard Deadline","owner":"Student","start":"2027-02-01","end":"2027-02-01","status":"Planned","verif":"Verified","loc":"UNCW portal"}]},K='senior-dashboard-v1';
+const load=()=>{try{return JSON.parse(localStorage.getItem(K))}catch(e){return null}};
+let S=load()||structuredClone(SEED),view='today',sel,cur;
+const iso=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+const TODAY=iso(new Date());sel=TODAY;cur=new Date(TODAY.slice(0,8)+'01T00:00:00');
+const saveLocal=()=>{try{localStorage.setItem(K,JSON.stringify(S))}catch(e){}};
+let syncing=false;
+const setSync=(t)=>{const e=$('#syncSt');if(e)e.textContent=t};
+const save=()=>{saveLocal();if(LIVE)cloudSave()};
+async function cloudSave(){
+  try{setSync('Saving…');await sbClient.from('dashboard_state').upsert({id:STATE_ID,data:S,updated_at:new Date().toISOString()});setSync('🟢 Synced')}
+  catch(e){setSync('🟠 Saved locally only')}
+}
+async function cloudLoad(){
+  const{data,error}=await sbClient.from('dashboard_state').select('data').eq('id',STATE_ID).maybeSingle();
+  return error?null:data?.data||null;
+}
+function subscribeRealtime(){
+  sbClient.channel('dashboard-'+STATE_ID).on('postgres_changes',{event:'*',schema:'public',table:'dashboard_state',filter:`id=eq.${STATE_ID}`},p=>{
+    if(syncing||!p.new||!p.new.data)return;S=p.new.data;saveLocal();render();setSync('🟢 Synced')
+  }).subscribe();
+  sbClient.channel('inbox-'+STATE_ID).on('postgres_changes',{event:'*',schema:'public',table:'raw_inbox'},()=>loadInbox()).subscribe();
+}
+let inboxRows=[];
+async function loadInbox(){if(!LIVE)return;const{data}=await sbClient.from('raw_inbox').select('*').order('received_at',{ascending:false}).limit(200);inboxRows=data||[];render()}
+async function markInbox(id,status){await sbClient.from('raw_inbox').update({status}).eq('id',id);await loadInbox()}
+function dismissInbox(id){markInbox(id,'archived')}
+function inboxToTask(id){const row=inboxRows.find(r=>r.id==id);const o={id:uid('REQ','reqs'),name:row.subject||'Task from email',college:row.college||'',owner:'Student',status:'Not Started',due:''};
+  form('Add task from email',[['name','Task','text'],['college','College','text'],['owner','Owner','s',OWN],['due','Due date','date'],['status','Status','s',RST]],o,x=>{S.reqs.push(x);markInbox(id,'promoted')})}
+function inboxToEvent(id){const row=inboxRows.find(r=>r.id==id);const o={id:uid('EVT','events'),name:row.subject||'Event from email',tag:'Logistics & Action',status:'Planned',verif:'Needs Verification',owner:'Student',start:TODAY};
+  form('Add event from email',[['name','Event','text'],['tag','Type','s',Object.keys(TAGS)],['start','Start date','date'],['end','End date (optional)','date'],['owner','Owner','s',OWN],['status','Status','s',ML('Planned,Registered,In Progress,Done,Canceled')],['verif','Date check','s',VER],['loc','Location / link','text']],o,x=>{S.events.push(x);markInbox(id,'promoted')})}
+function addInboxManual(){const o={subject:'',from_email:'',college:'',body:''};
+  form('Paste an email',[['subject','Subject','text'],['from_email','From','text'],['college','College (optional)','text'],['body','Paste the email text','ta']],o,async x=>{await sbClient.from('raw_inbox').insert({subject:x.subject,from_email:x.from_email,college:x.college,body:x.body,status:'new'});await loadInbox()})}
+async function afterAuth(){
+  $('#auth').hidden=true;$('#signOutBtn').hidden=false;setSync('Loading…');
+  const cloud=await cloudLoad();
+  syncing=true;
+  if(cloud)S=cloud;else await cloudSave();
+  syncing=false;saveLocal();subscribeRealtime();loadInbox();setSync('🟢 Synced');render();
+}
+async function initLive(){
+  const{data:{session}}=await sbClient.auth.getSession();
+  if(!session){$('#auth').hidden=false;return}
+  afterAuth();
+}
+if(LIVE){
+  $('#loginForm').onsubmit=async e=>{e.preventDefault();const f=new FormData(e.target);
+    const{error}=await sbClient.auth.signInWithPassword({email:f.get('email'),password:f.get('password')});
+    if(error){$('#authErr').textContent=error.message}else{afterAuth()}};
+  sbClient.auth.onAuthStateChange((ev,session)=>{if(ev=='SIGNED_IN'&&!syncing)afterAuth()});
+  initLive();
+}else{setSync('🟠 Local only — see README to enable shared sync')}
+const D=s=>new Date(s+'T00:00:00'),dd=(a,b)=>Math.round((D(b)-D(a))/864e5),diff=s=>dd(TODAY,s);
+const TAGS={'Hard Deadline':'#c8372d','Apply Free / Merit':'#b7791f','Fair & Info Session':'#6b46c1','Logistics & Action':'#2b6cb0','Financial Aid':'#2b6cb0','Travel / Campus Visit':'#2f855a'};
+const col=t=>TAGS[t]||'#5b6678',ML=o=>o.split(',');
+const VER=ML('Verified,Needs Verification,Planning Target,Needs Year Verification');
+const F=[['transcript','Transcript',ML('Not Required,Not Started,Requested,Sent,Verified'),ML('Not Required,Sent,Verified'),['Requested']],
+['essay1','Essay 1',ML('Not Required,Draft,Final,Submitted'),ML('Not Required,Final,Submitted'),[]],
+['essay2','Essay 2',ML('Not Required,Draft,Final,Submitted'),ML('Not Required,Final,Submitted'),[]],
+['counselorRec','Counselor rec',ML('Not Required,Requested,Sent,Verified'),ML('Not Required,Sent,Verified'),['Requested']],
+['teacherRec','Teacher rec',ML('Not Required,Requested,Sent,Verified'),ML('Not Required,Sent,Verified'),['Requested']],
+['fafsaContrib','FAFSA contributor',ML('Not Needed,To Invite,Invited,Contributor Complete'),ML('Not Needed,Contributor Complete'),['Invited']],
+['fafsaSubmitted','FAFSA submitted',ML('Not Started,In Progress,Submitted,Processed'),ML('Submitted,Processed'),[]],
+['aidPortal','Aid portal',ML('Not Required,Needs Setup,Accessible,Requirements Checked'),ML('Not Required,Accessible,Requirements Checked'),[]],
+['fee','App fee',ML('Unpaid,Paid,Waiver Requested,Waiver Form Submitted,Waived'),ML('Paid,Waived'),['Waiver Requested','Waiver Form Submitted']]];
+const TYPES=ML('Early Action,Early Decision,Regular Decision,Rolling'),STAT=ML('Researching,Drafting,Ready to Submit,Submitted,Complete in Portal,Decision Received');
+const RST=ML('Not Started,Requested,In Progress,Sent,Verified,Not Required'),OWN=ML('Student,Parent,Counselor,Teacher,College,Student + Parent');
+const health=a=>{let m=0,w=0;F.forEach(([k,,,dn,wt])=>{if(!dn.includes(a[k])){m++;if(wt.includes(a[k]))w++}});return m==0?['🟢','Complete']:m==w?['🟡','Waiting on others']:['🔴','Action needed']};
+const missing=a=>F.filter(f=>!f[3].includes(a[f[0]])).length;
+const evOn=(e,d)=>{const n=e.end||e.start;return e.start&&d>=e.start&&d<=n&&(d==e.start||d==n||dd(e.start,n)<=7)};
+const inR=(e,d)=>e.start&&d>=e.start&&d<=(e.end||e.start);
+const opts=(o,v)=>(o.includes(v)||v==null||v===''?o:[v,...o]).map(x=>`<option${x==v?' selected':''}>${esc(x)}</option>`).join('');
+const upd=(c,id,k,v)=>{S[c].find(x=>x.id==id)[k]=v;save();render()};
+const uid=(p,c)=>p+'-'+String(Math.max(0,...S[c].map(x=>+x.id.split('-')[1]||0))+1).padStart(3,'0');
+const open=r=>!['Verified','Not Required'].includes(r.status);
+const short=s=>s?D(s).toLocaleDateString('en-US',{month:'short',day:'numeric'}):'no date';
+const cd=s=>{const n=diff(s);return n<0?`${-n}d ago`:n==0?'today':`in ${n}d`};
+function ev(e){return `<div class="row"><span class="dot" style="--c:${col(e.tag)}"></span><span><b>${esc(e.name)}</b><br><span class="mut">${short(e.start)}${e.end&&e.end!=e.start?'–'+short(e.end):''} · ${esc(e.tag)}</span></span>${/Needs/.test(e.verif||'')?'<span class="pill v">verify</span>':''}<span class="mut">${cd(e.start)}</span></div>`}
+function today(){const up=S.events.filter(e=>(e.end||e.start)>=TODAY&&e.status!='Canceled').sort((a,b)=>a.start<b.start?-1:1);
+const hard=up.find(e=>e.tag=='Hard Deadline'),h14=up.filter(e=>e.tag=='Hard Deadline'&&diff(e.start)<=14).length;
+const tk=S.reqs.filter(open).sort((a,b)=>(a.due||'9')<(b.due||'9')?-1:1),od=tk.filter(r=>r.due&&r.due<TODAY).length,red=S.apps.filter(a=>health(a)[0]=='🔴').length;
+return `<div class="stats"><div class="st r"><b>${h14}</b>hard deadlines in 14 days</div><div class="st a"><b>${red}</b>colleges need action</div><div class="st"><b>${tk.length}</b>open tasks</div><div class="st ${od?'r':''}"><b>${od}</b>overdue tasks</div></div>
+${hard?`<div class="next"><div class="big">${diff(hard.start)}</div><div>days until your next hard deadline<br><b style="font-size:18px">${esc(hard.name)}</b><br><span style="color:#c9d3e3">${short(hard.start)}${/Needs/.test(hard.verif||'')?' · confirm this date':''}</span></div></div>`:''}
+<div class="grid2"><div class="box"><h2>Coming up</h2>${up.slice(0,8).map(ev).join('')||'<p class="mut">No upcoming events. Add one on the Calendar tab.</p>'}</div>
+<div class="box"><h2>Open tasks</h2>${tk.slice(0,8).map(r=>`<div class="row"><span><b>${esc(r.name)}</b><br><span class="mut">${esc(r.college||'All colleges')} · ${esc(r.owner)} · ${esc(r.status)}</span></span><span class="mut">${r.due?cd(r.due):''}</span></div>`).join('')||'<p class="mut">Nothing open.</p>'}</div></div>`}
+function calendar(){const y=cur.getFullYear(),m=cur.getMonth(),st=new Date(y,m,1-new Date(y,m,1).getDay());let g=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map(d=>`<div class="h">${d}</div>`).join('');
+for(let i=0;i<42;i++){const d=new Date(st);d.setDate(st.getDate()+i);const k=iso(d),es=S.events.filter(e=>evOn(e,k));
+g+=`<div class="${d.getMonth()!=m?'o ':''}${k==TODAY?'t ':''}${k==sel?'s':''}" onclick="sel='${k}';render()"><b>${d.getDate()}</b>${es.slice(0,3).map(e=>`<div class="ch" style="--c:${col(e.tag)}">${esc(e.name)}</div>`).join('')}${es.length>3?`<div class="mut">+${es.length-3} more</div>`:''}</div>`}
+const day=S.events.filter(e=>inR(e,sel));
+return `<div class="cal"><div><div class="bar" style="margin:0 0 10px"><button onclick="cur.setMonth(cur.getMonth()-1);render()">‹</button><h2 style="margin:0;flex:1;text-align:center">${cur.toLocaleDateString('en-US',{month:'long',year:'numeric'})}</h2><button onclick="cur.setMonth(cur.getMonth()+1);render()">›</button></div><div class="mg">${g}</div>
+<p class="mut">${Object.entries({'Hard deadline':'#c8372d','Apply-free / merit':'#b7791f','Fair / info':'#6b46c1','Action / aid':'#2b6cb0','Travel / visit':'#2f855a'}).map(([n,c])=>`<span class="dot" style="--c:${c};display:inline-block"></span> ${n} &nbsp;`).join('')}</p></div>
+<div class="box"><h2>${D(sel).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'})}</h2>${day.map(e=>`<div class="row"><span class="dot" style="--c:${col(e.tag)}"></span><span><b>${esc(e.name)}</b><br><span class="mut">${esc(e.tag)} · ${esc(e.status)}</span></span><button onclick="editEv('${e.id}')">Edit</button></div>`).join('')||'<p class="mut">Nothing scheduled.</p>'}<div class="bar"><button class="p" onclick="editEv()">Add event</button></div></div></div>`}
+function colleges(){return `<div class="bar" style="margin:0 0 12px"><h2 style="margin:0;flex:1">Colleges</h2><button class="p" onclick="editApp()">Add college</button></div>`+S.apps.map(a=>{const[h,t]=health(a);return `<div class="ap"><div class="row" style="border:0;padding:0"><span class="hd">${h}</span><span><b style="font-size:17px">${esc(a.name)}</b><br><span class="mut">${esc(a.type)} · deadline ${short(a.deadline)}${a.deadline?' ('+cd(a.deadline)+')':''} · ${t}, ${missing(a)} open</span></span><button onclick="editApp('${a.id}')">Edit</button></div>
+${a.next?`<p class="mut" style="margin:8px 0 0">Next: ${esc(a.next)}${a.nextDue?' by '+short(a.nextDue):''}</p>`:''}
+<div class="fl"><div><label>Status</label><select onchange="upd('apps','${a.id}','status',this.value)">${opts(STAT,a.status)}</select></div>${F.map(([k,l,o])=>`<div><label>${l}</label><select onchange="upd('apps','${a.id}','${k}',this.value)">${opts(o,a[k])}</select></div>`).join('')}</div></div>`}).join('')}
+function tasks(){return `<div class="bar" style="margin:0 0 12px"><h2 style="margin:0;flex:1">Tasks & requirements</h2><button class="p" onclick="editReq()">Add task</button></div><table><tr><th>Task</th><th>College</th><th>Owner</th><th>Due</th><th>Status</th><th></th></tr>${[...S.reqs].sort((a,b)=>(a.due||'9')<(b.due||'9')?-1:1).map(r=>`<tr><td>${esc(r.name)}</td><td>${esc(r.college||'All')}</td><td>${esc(r.owner)}</td><td class="${r.due&&r.due<TODAY&&open(r)?'':'mut'}" style="${r.due&&r.due<TODAY&&open(r)?'color:var(--red);font-weight:600':''}">${short(r.due)}</td><td><select onchange="upd('reqs','${r.id}','status',this.value)">${opts(RST,r.status)}</select></td><td><button onclick="editReq('${r.id}')">Edit</button></td></tr>`).join('')}</table>`}
+function form(title,fields,o,ok,del){const dl=$('#dlg');dl.innerHTML=`<form method="dialog"><h2>${title}</h2>${fields.map(([k,l,t,os])=>`<label>${l}${t=='s'?`<select name="${k}">${opts(os,o[k])}</select>`:t=='ta'?`<textarea name="${k}" rows="6" style="width:100%;padding:6px;font:inherit">${esc(o[k]||'')}</textarea>`:`<input name="${k}" type="${t}" value="${esc(o[k]||'')}">`}</label>`).join('')}<div class="bar"><button class="p" value="ok">Save</button><button value="x">Cancel</button>${del?'<button type="button" class="d" id="del">Delete</button>':''}</div></form>`;
+dl.onclose=()=>{if(dl.returnValue=='ok'){const f=new FormData(dl.querySelector('form'));fields.forEach(([k])=>o[k]=f.get(k));ok(o);save();render()}dl.returnValue=''};
+if(del)$('#del').onclick=()=>{if(confirm('Delete this item?')){del();save();dl.close('x');render()}};dl.showModal()}
+function editEv(id){const n=!id,o=n?{id:uid('EVT','events'),tag:'Logistics & Action',status:'Planned',verif:'Needs Verification',start:sel,owner:'Student'}:S.events.find(e=>e.id==id);
+form(n?'Add event':'Edit event',[['name','Event','text'],['tag','Type','s',Object.keys(TAGS)],['start','Start date','date'],['end','End date (optional)','date'],['owner','Owner','s',OWN],['status','Status','s',ML('Planned,Registered,In Progress,Done,Canceled')],['verif','Date check','s',VER],['loc','Location / link','text']],o,x=>{if(n)S.events.push(x)},n?0:()=>S.events=S.events.filter(e=>e.id!=id))}
+function editApp(id){const n=!id,o=n?{id:uid('APP','apps'),type:'Regular Decision',status:'Researching',transcript:'Not Started',essay1:'Draft',essay2:'Not Required',counselorRec:'Not Started',teacherRec:'Not Required',fafsaContrib:'To Invite',fafsaSubmitted:'Not Started',aidPortal:'Needs Setup',fee:'Unpaid'}:S.apps.find(a=>a.id==id);
+form(n?'Add college':'Edit college',[['name','College','text'],['type','Application type','s',TYPES],['deadline','Deadline','date'],['target','Your target date','date'],['next','Next action (one sentence)','text'],['nextDue','Next action due','date'],['notes','Missing-items notes','text']],o,x=>{if(n)S.apps.push(x)},n?0:()=>S.apps=S.apps.filter(a=>a.id!=id))}
+function editReq(id){const n=!id,o=n?{id:uid('REQ','reqs'),status:'Not Started',owner:'Student',college:'All colleges',cat:'Application'}:S.reqs.find(r=>r.id==id);
+form(n?'Add task':'Edit task',[['name','Task','text'],['college','College','text'],['owner','Owner','s',OWN],['due','Due date','date'],['status','Status','s',RST]],o,x=>{if(n)S.reqs.push(x)},n?0:()=>S.reqs=S.reqs.filter(r=>r.id!=id))}
+function exp(){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(S,null,1)],{type:'application/json'}));a.download='college-dashboard-'+TODAY+'.json';a.click()}
+$('#imp').onchange=e=>{const f=e.target.files[0];if(!f)return;f.text().then(t=>{try{const d=JSON.parse(t);if(!d.events||!d.apps||!d.reqs)throw 0;S=d;save();render()}catch(x){alert('That file is not a dashboard export.')}})};
+function rst(){if(confirm('Replace all your changes with the original sample data?')){S=structuredClone(SEED);save();render()}}
+function inbox(){
+  if(!LIVE) return `<div class="box"><h2>Inbox</h2><p class="mut">Forwarded college emails need shared live sync turned on first &mdash; they need somewhere live to land. Set that up (see README), then come back here.</p></div>`;
+  const rows=inboxRows;
+  return `<div class="bar" style="margin:0 0 12px"><h2 style="margin:0;flex:1">Inbox${rows.filter(r=>r.status=='new').length?` (${rows.filter(r=>r.status=='new').length} new)`:''}</h2><button class="p" onclick="addInboxManual()">Paste an email</button></div>
+  ${rows.length?rows.map(r=>`<div class="ap"><div class="row" style="border:0;padding:0"><span class="pill${r.status=='new'?' v':''}" style="flex:none">${esc(r.status)}</span><span><b>${esc(r.subject||'(no subject)')}</b><br><span class="mut">${esc(r.from_email||'unknown sender')} · ${esc(r.college||'no college tagged')} · ${short(r.received_at?String(r.received_at).slice(0,10):null)}</span></span></div>
+  <details style="margin-top:8px"><summary class="mut" style="cursor:pointer">Show full email</summary><pre style="white-space:pre-wrap;font-family:inherit;font-size:13px;margin:8px 0 0">${esc(r.body||'')}</pre></details>
+  ${r.status!='archived'&&r.status!='promoted'?`<div class="bar"><button onclick="inboxToTask('${r.id}')">Make task</button><button onclick="inboxToEvent('${r.id}')">Make event</button><button onclick="dismissInbox('${r.id}')">Dismiss</button></div>`:''}</div>`).join(''):'<p class="mut">No emails yet. Forward one to your dedicated address, or paste one in to try it now.</p>'}`
+}
+function render(){$('#nav').innerHTML=[['today','Today'],['cal','Calendar'],['col','Colleges'],['task','Tasks'],['inbox','Inbox'+(LIVE&&inboxRows.filter(r=>r.status=='new').length?` (${inboxRows.filter(r=>r.status=='new').length})`:'')]].map(([k,l])=>`<button class="${view==k?'on':''}" onclick="view='${k}';render()">${l}</button>`).join('');$('#m').innerHTML={today,cal:calendar,col:colleges,task:tasks,inbox}[view]()}
+render();
+</script></body></html>
